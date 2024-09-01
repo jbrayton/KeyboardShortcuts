@@ -31,32 +31,8 @@ extension KeyboardShortcuts {
 		private let onChange: ((_ shortcut: Shortcut?) -> Void)?
 		private var canBecomeKey = false
 		private var eventMonitor: LocalEventMonitor?
-		private var shortcutsNameChangeObserver: NSObjectProtocol?
 		private var windowDidResignKeyObserver: NSObjectProtocol?
 		private var windowDidBecomeKeyObserver: NSObjectProtocol?
-
-		/**
-		The shortcut name for the recorder.
-
-		Can be dynamically changed at any time.
-		*/
-		public var shortcutName: Name {
-			didSet {
-				guard shortcutName != oldValue else {
-					return
-				}
-
-				setStringValue(name: shortcutName)
-
-				// This doesn't seem to be needed anymore, but I cannot test on older OS versions, so keeping it just in case.
-				if #unavailable(macOS 12) {
-					DispatchQueue.main.async { [self] in
-						// Prevents the placeholder from being cut off.
-						blur()
-					}
-				}
-			}
-		}
 
 		/// :nodoc:
 		override public var canBecomeKeyView: Bool { canBecomeKey }
@@ -82,10 +58,9 @@ extension KeyboardShortcuts {
 		- Parameter onChange: Callback which will be called when the keyboard shortcut is changed/removed by the user. This can be useful when you need more control. For example, when migrating from a different keyboard shortcut solution and you need to store the keyboard shortcut somewhere yourself instead of relying on the built-in storage. However, it's strongly recommended to just rely on the built-in storage when possible.
 		*/
 		public required init(
-			for name: Name,
+			initialValue: Shortcut?,
 			onChange: ((_ shortcut: Shortcut?) -> Void)? = nil
 		) {
-			self.shortcutName = name
 			self.onChange = onChange
 
 			super.init(frame: .zero)
@@ -101,9 +76,8 @@ extension KeyboardShortcuts {
 			// Hide the cancel button when not showing the shortcut so the placeholder text is properly centered. Must be last.
 			self.cancelButton = (cell as? NSSearchFieldCell)?.cancelButtonCell
 
-			setStringValue(name: name)
+			setStringValue(shortcut: initialValue)
 
-			setUpEvents()
 		}
 
 		@available(*, unavailable)
@@ -111,25 +85,11 @@ extension KeyboardShortcuts {
 			fatalError("init(coder:) has not been implemented")
 		}
 
-		private func setStringValue(name: KeyboardShortcuts.Name) {
-			stringValue = getShortcut(for: shortcutName).map { "\($0)" } ?? ""
+		public func setStringValue(shortcut: Shortcut?) {
+			stringValue = shortcut.map { "\($0)" } ?? ""
 
 			// If `stringValue` is empty, hide the cancel button to let the placeholder center.
 			showsCancelButton = !stringValue.isEmpty
-		}
-
-		private func setUpEvents() {
-			shortcutsNameChangeObserver = NotificationCenter.default.addObserver(forName: .shortcutByNameDidChange, object: nil, queue: nil) { [weak self] notification in
-				guard
-					let self,
-					let nameInNotification = notification.userInfo?["name"] as? KeyboardShortcuts.Name,
-					nameInNotification == shortcutName
-				else {
-					return
-				}
-
-				setStringValue(name: nameInNotification)
-			}
 		}
 
 		private func endRecording() {
@@ -319,7 +279,6 @@ extension KeyboardShortcuts {
 		}
 
 		private func saveShortcut(_ shortcut: Shortcut?) {
-			setShortcut(shortcut, for: shortcutName)
 			onChange?(shortcut)
 		}
 	}
