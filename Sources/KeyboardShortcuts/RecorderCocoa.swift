@@ -220,12 +220,7 @@ extension KeyboardShortcuts {
 					return nil
 				}
 
-				// The “shift” key is not allowed without other modifiers or a function key, since it doesn't actually work.
-				guard
-					!event.modifiers.subtracting(.shift).isEmpty
-						|| event.specialKey?.isFunctionKey == true,
-					let shortcut = Shortcut(event: event)
-				else {
+				guard let shortcut = Shortcut(event: event) else {
 					NSSound.beep()
 					return nil
 				}
