@@ -34,6 +34,13 @@ extension KeyboardShortcuts {
 		private var windowDidResignKeyObserver: NSObjectProtocol?
 		private var windowDidBecomeKeyObserver: NSObjectProtocol?
 
+		public var shortcut: Shortcut? {
+			didSet {
+				stringValue = shortcut.map { "\($0)" } ?? ""
+				showsCancelButton = !stringValue.isEmpty
+			}
+		}
+
 		/// :nodoc:
 		override public var canBecomeKeyView: Bool { canBecomeKey }
 
@@ -76,20 +83,14 @@ extension KeyboardShortcuts {
 			// Hide the cancel button when not showing the shortcut so the placeholder text is properly centered. Must be last.
 			self.cancelButton = (cell as? NSSearchFieldCell)?.cancelButtonCell
 
-			setStringValue(shortcut: initialValue)
+			
+			self.shortcut = initialValue
 
 		}
 
 		@available(*, unavailable)
 		public required init?(coder: NSCoder) {
 			fatalError("init(coder:) has not been implemented")
-		}
-
-		public func setStringValue(shortcut: Shortcut?) {
-			stringValue = shortcut.map { "\($0)" } ?? ""
-
-			// If `stringValue` is empty, hide the cancel button to let the placeholder center.
-			showsCancelButton = !stringValue.isEmpty
 		}
 
 		private func endRecording() {
@@ -224,6 +225,11 @@ extension KeyboardShortcuts {
 					NSSound.beep()
 					return nil
 				}
+				
+				if shortcut == self.shortcut {
+					blur()
+					return nil
+				}
 
 				if let menuItem = shortcut.takenByMainMenu {
 					// TODO: Find a better way to make it possible to dismiss the alert by pressing "Enter". How can we make the input automatically temporarily lose focus while the alert is open?
@@ -274,6 +280,7 @@ extension KeyboardShortcuts {
 		}
 
 		private func saveShortcut(_ shortcut: Shortcut?) {
+			self.shortcut = shortcut
 			onChange?(shortcut)
 		}
 	}
