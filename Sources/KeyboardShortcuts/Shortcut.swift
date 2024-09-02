@@ -113,6 +113,7 @@ extension KeyboardShortcuts.Shortcut {
 	*/
 	@MainActor
 	func menuItemWithMatchingShortcut(in menu: NSMenu) -> NSMenuItem? {
+		let myKeyEquivalent = self.keyEquivalent
 		for item in menu.items {
 			var keyEquivalent = item.keyEquivalent
 			var keyEquivalentModifierMask = item.keyEquivalentModifierMask
@@ -122,9 +123,7 @@ extension KeyboardShortcuts.Shortcut {
 				keyEquivalentModifierMask.insert(.shift)
 			}
 
-			if
-				keyToCharacter() == keyEquivalent,
-				modifiers == keyEquivalentModifierMask
+			if myKeyEquivalent == keyEquivalent, modifiers == keyEquivalentModifierMask
 			{
 				return item
 			}
@@ -294,7 +293,7 @@ extension KeyboardShortcuts.Shortcut {
 	- Note: Don't forget to also pass `.modifiers` to `NSMenuItem#keyEquivalentModifierMask`.
 	*/
 	@MainActor
-	var keyEquivalent: String {
+	public var keyEquivalent: String {
 		let keyString = keyToCharacter() ?? ""
 
 		guard keyString.count <= 1 else {
