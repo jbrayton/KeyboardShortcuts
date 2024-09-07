@@ -112,7 +112,7 @@ extension KeyboardShortcuts.Shortcut {
 	Recursively finds a menu item in the given menu that has a matching key equivalent and modifier.
 	*/
 	@MainActor
-	func menuItemWithMatchingShortcut(in menu: NSMenu) -> NSMenuItem? {
+	public func menuItemWithMatchingShortcut(in menu: NSMenu) -> NSMenuItem? {
 		let myKeyEquivalent = self.keyEquivalent
 		for item in menu.items {
 			var keyEquivalent = item.keyEquivalent
@@ -143,7 +143,7 @@ extension KeyboardShortcuts.Shortcut {
 	Returns a menu item in the app's main menu that has a matching key equivalent and modifier.
 	*/
 	@MainActor
-	var takenByMainMenu: NSMenuItem? {
+	public var takenByMainMenu: NSMenuItem? {
 		guard let mainMenu = NSApp.mainMenu else {
 			return nil
 		}

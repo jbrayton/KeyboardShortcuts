@@ -28,7 +28,7 @@ extension KeyboardShortcuts {
 	*/
 	public final class RecorderCocoa: NSSearchField, NSSearchFieldDelegate {
 		private let minimumWidth = 130.0
-		private let onChange: ((_ shortcut: Shortcut?) -> Void)?
+		private let onChange: ((Shortcut?) async -> Bool)?
 		private var canBecomeKey = false
 		private var eventMonitor: LocalEventMonitor?
 		private var windowDidResignKeyObserver: NSObjectProtocol?
@@ -66,7 +66,7 @@ extension KeyboardShortcuts {
 		*/
 		public required init(
 			initialValue: Shortcut?,
-			onChange: ((_ shortcut: Shortcut?) -> Void)? = nil
+			onChange: ((Shortcut?) async -> Bool)?
 		) {
 			self.onChange = onChange
 
@@ -83,7 +83,7 @@ extension KeyboardShortcuts {
 			// Hide the cancel button when not showing the shortcut so the placeholder text is properly centered. Must be last.
 			self.cancelButton = (cell as? NSSearchFieldCell)?.cancelButtonCell
 
-			
+
 			self.shortcut = initialValue
 
 		}
@@ -225,25 +225,25 @@ extension KeyboardShortcuts {
 					NSSound.beep()
 					return nil
 				}
-				
+
 				if shortcut == self.shortcut {
 					blur()
 					return nil
 				}
 
-				if let menuItem = shortcut.takenByMainMenu {
-					// TODO: Find a better way to make it possible to dismiss the alert by pressing "Enter". How can we make the input automatically temporarily lose focus while the alert is open?
-					blur()
-
-					NSAlert.showModal(
-						for: window,
-						title: String.localizedStringWithFormat("keyboard_shortcut_used_by_menu_item".localized, menuItem.title)
-					)
-
-					focus()
-
-					return nil
-				}
+//				if let menuItem = shortcut.takenByMainMenu {
+//					// TODO: Find a better way to make it possible to dismiss the alert by pressing "Enter". How can we make the input automatically temporarily lose focus while the alert is open?
+//					blur()
+//
+//					NSAlert.showModal(
+//						for: window,
+//						title: String.localizedStringWithFormat("keyboard_shortcut_used_by_menu_item".localized, menuItem.title)
+//					)
+//
+//					focus()
+//
+//					return nil
+//				}
 
 				if shortcut.isTakenBySystem {
 					blur()
@@ -267,7 +267,7 @@ extension KeyboardShortcuts {
 					}
 				}
 
-				stringValue = "\(shortcut)"
+				//stringValue = "\(shortcut)"
 				showsCancelButton = true
 
 				saveShortcut(shortcut)
@@ -280,8 +280,12 @@ extension KeyboardShortcuts {
 		}
 
 		private func saveShortcut(_ shortcut: Shortcut?) {
-			self.shortcut = shortcut
-			onChange?(shortcut)
+			Task { [weak self] in
+				if await onChange?(shortcut) == true {
+					self?.shortcut = shortcut
+				}
+
+			}
 		}
 	}
 }
