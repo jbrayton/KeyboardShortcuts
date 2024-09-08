@@ -85,6 +85,8 @@ extension KeyboardShortcuts {
 
 
 			self.shortcut = initialValue
+			self.stringValue = initialValue.map { "\($0)" } ?? ""
+			self.showsCancelButton = !self.stringValue.isEmpty
 
 		}
 
@@ -245,27 +247,27 @@ extension KeyboardShortcuts {
 //					return nil
 //				}
 
-				if shortcut.isTakenBySystem {
-					blur()
-
-					let modalResponse = NSAlert.showModal(
-						for: window,
-						title: "keyboard_shortcut_used_by_system".localized,
-						// TODO: Add button to offer to open the relevant system settings pane for the user.
-						message: "keyboard_shortcuts_can_be_changed".localized,
-						buttonTitles: [
-							"ok".localized,
-							"force_use_shortcut".localized
-						]
-					)
-
-					focus()
-
-					// If the user has selected "Use Anyway" in the dialog (the second option), we'll continue setting the keyboard shorcut even though it's reserved by the system.
-					guard modalResponse == .alertSecondButtonReturn else {
-						return nil
-					}
-				}
+//				if shortcut.isTakenBySystem {
+//					blur()
+//
+//					let modalResponse = NSAlert.showModal(
+//						for: window,
+//						title: "keyboard_shortcut_used_by_system".localized,
+//						// TODO: Add button to offer to open the relevant system settings pane for the user.
+//						message: "keyboard_shortcuts_can_be_changed".localized,
+//						buttonTitles: [
+//							"ok".localized,
+//							"force_use_shortcut".localized
+//						]
+//					)
+//
+//					focus()
+//
+//					// If the user has selected "Use Anyway" in the dialog (the second option), we'll continue setting the keyboard shorcut even though it's reserved by the system.
+//					guard modalResponse == .alertSecondButtonReturn else {
+//						return nil
+//					}
+//				}
 
 				//stringValue = "\(shortcut)"
 				showsCancelButton = true
