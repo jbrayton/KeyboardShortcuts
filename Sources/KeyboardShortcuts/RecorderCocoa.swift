@@ -37,7 +37,6 @@ extension KeyboardShortcuts {
 		public var shortcut: Shortcut? {
 			didSet {
 				stringValue = shortcut.map { "\($0)" } ?? ""
-				showsCancelButton = !stringValue.isEmpty
 			}
 		}
 
@@ -80,14 +79,10 @@ extension KeyboardShortcuts {
 			setContentHuggingPriority(.defaultHigh, for: .vertical)
 			setContentHuggingPriority(.defaultHigh, for: .horizontal)
 
-			// Hide the cancel button when not showing the shortcut so the placeholder text is properly centered. Must be last.
-			self.cancelButton = (cell as? NSSearchFieldCell)?.cancelButtonCell
-
 
 			self.shortcut = initialValue
 			self.stringValue = initialValue.map { "\($0)" } ?? ""
-			self.showsCancelButton = !self.stringValue.isEmpty
-
+			self.showsCancelButton = false
 		}
 
 		@available(*, unavailable)
@@ -98,7 +93,6 @@ extension KeyboardShortcuts {
 		private func endRecording() {
 			eventMonitor = nil
 			placeholderString = "record_shortcut".localized
-			showsCancelButton = !stringValue.isEmpty
 			restoreCaret()
 			KeyboardShortcuts.isPaused = false
 		}
@@ -118,10 +112,9 @@ extension KeyboardShortcuts {
 				saveShortcut(nil)
 			}
 
-			showsCancelButton = !stringValue.isEmpty
-
 			if stringValue.isEmpty {
 				// Hack to ensure that the placeholder centers after the above `showsCancelButton` setter.
+				// jb - is this still necessary after removing the cancel button?
 				focus()
 			}
 		}
@@ -171,7 +164,6 @@ extension KeyboardShortcuts {
 			}
 
 			placeholderString = "press_shortcut".localized
-			showsCancelButton = !stringValue.isEmpty
 			hideCaret()
 			KeyboardShortcuts.isPaused = true // The position here matters.
 
@@ -233,45 +225,6 @@ extension KeyboardShortcuts {
 					return nil
 				}
 
-//				if let menuItem = shortcut.takenByMainMenu {
-//					// TODO: Find a better way to make it possible to dismiss the alert by pressing "Enter". How can we make the input automatically temporarily lose focus while the alert is open?
-//					blur()
-//
-//					NSAlert.showModal(
-//						for: window,
-//						title: String.localizedStringWithFormat("keyboard_shortcut_used_by_menu_item".localized, menuItem.title)
-//					)
-//
-//					focus()
-//
-//					return nil
-//				}
-
-//				if shortcut.isTakenBySystem {
-//					blur()
-//
-//					let modalResponse = NSAlert.showModal(
-//						for: window,
-//						title: "keyboard_shortcut_used_by_system".localized,
-//						// TODO: Add button to offer to open the relevant system settings pane for the user.
-//						message: "keyboard_shortcuts_can_be_changed".localized,
-//						buttonTitles: [
-//							"ok".localized,
-//							"force_use_shortcut".localized
-//						]
-//					)
-//
-//					focus()
-//
-//					// If the user has selected "Use Anyway" in the dialog (the second option), we'll continue setting the keyboard shorcut even though it's reserved by the system.
-//					guard modalResponse == .alertSecondButtonReturn else {
-//						return nil
-//					}
-//				}
-
-				//stringValue = "\(shortcut)"
-				showsCancelButton = true
-
 				saveShortcut(shortcut)
 				blur()
 
@@ -289,6 +242,12 @@ extension KeyboardShortcuts {
 
 			}
 		}
+
+		private func clear() {
+			self.saveShortcut(nil)
+		}
+		
 	}
+	
 }
 #endif
