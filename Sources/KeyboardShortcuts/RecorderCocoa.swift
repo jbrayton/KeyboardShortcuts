@@ -235,9 +235,11 @@ extension KeyboardShortcuts {
 		}
 
 		private func saveShortcut(_ shortcut: Shortcut?) {
+			let priorShortcut = self.shortcut
+			self.shortcut = shortcut
 			Task { [weak self] in
-				if await onChange?(shortcut) == true {
-					self?.shortcut = shortcut
+				if await onChange?(shortcut) != true {
+					self?.shortcut = priorShortcut
 				}
 
 			}
