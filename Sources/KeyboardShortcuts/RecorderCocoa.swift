@@ -164,6 +164,15 @@ extension KeyboardShortcuts {
 			}
 
 			placeholderString = "press_shortcut".localized
+			
+			// This works around a bug on macOS 26 where the new placeholder text would be drawn on top of the
+			// new placeholder text.
+			if #available(macOS 26.0, *) {
+				let prior = self.stringValue
+				self.stringValue = "foo"
+				self.stringValue = prior
+			}
+			
 			hideCaret()
 			KeyboardShortcuts.isPaused = true // The position here matters.
 
@@ -248,8 +257,8 @@ extension KeyboardShortcuts {
 		private func clear() {
 			self.saveShortcut(nil)
 		}
-		
+
 	}
-	
+
 }
 #endif
