@@ -26,7 +26,7 @@ extension KeyboardShortcuts {
 	}
 	```
 	*/
-	public final class RecorderCocoa: NSSearchField, NSSearchFieldDelegate {
+	public final class RecorderCocoa: NSTextField, NSTextFieldDelegate {
 		private let minimumWidth = 130.0
 		private let onChange: ((Shortcut?) async -> Bool)?
 		private var canBecomeKey = false
@@ -53,9 +53,11 @@ extension KeyboardShortcuts {
 		private var cancelButton: NSButtonCell?
 
 		private var showsCancelButton: Bool {
-			get { (cell as? NSSearchFieldCell)?.cancelButtonCell != nil }
+			get {
+				return false
+			}
 			set {
-				(cell as? NSSearchFieldCell)?.cancelButtonCell = newValue ? cancelButton : nil
+				//
 			}
 		}
 
@@ -73,7 +75,7 @@ extension KeyboardShortcuts {
 			self.delegate = self
 			self.placeholderString = "record_shortcut".localized
 			self.alignment = .center
-			(cell as? NSSearchFieldCell)?.searchButtonCell = nil
+			//(cell as? NSTextFieldCell)?.searchButtonCell = nil
 
 			self.wantsLayer = true
 			setContentHuggingPriority(.defaultHigh, for: .vertical)
@@ -176,7 +178,7 @@ extension KeyboardShortcuts {
 			hideCaret()
 			KeyboardShortcuts.isPaused = true // The position here matters.
 
-			eventMonitor = LocalEventMonitor(events: [.keyDown, .leftMouseUp, .rightMouseUp]) { [weak self] event in
+			eventMonitor = LocalEventMonitor(events: [.keyDown]) { [weak self] event in
 				guard let self else {
 					return nil
 				}
@@ -246,11 +248,12 @@ extension KeyboardShortcuts {
 		private func saveShortcut(_ shortcut: Shortcut?) {
 			let priorShortcut = self.shortcut
 			self.shortcut = shortcut
-			Task { [weak self] in
-				if await onChange?(shortcut) != true {
-					self?.shortcut = priorShortcut
+			DispatchQueue.main.async { [weak self] in
+				Task { [weak self] in
+					if let self, await self.onChange?(shortcut) != true {
+						self.shortcut = priorShortcut
+					}
 				}
-
 			}
 		}
 
